@@ -25,6 +25,8 @@ const buildProductPayload = (body, existingProduct) => {
     const sgstPct = body.sgstPct !== undefined ? toNumber(body.sgstPct) : (totalTaxRate !== null ? totalTaxRate / 2 : 0);
     const cgstAmt = toNumber(body.cgstAmt ?? ((grossAmt * cgstPct) / 100).toFixed(2));
     const sgstAmt = toNumber(body.sgstAmt ?? ((grossAmt * sgstPct) / 100).toFixed(2));
+    const entryDate = body.entryDate ? new Date(body.entryDate) : (existingProduct?.entryDate || null);
+    const expiryDate = body.expiryDate ? new Date(body.expiryDate) : (existingProduct?.expiryDate || null);
 
     return {
         particulars,
@@ -37,6 +39,8 @@ const buildProductPayload = (body, existingProduct) => {
         cgstAmt,
         sgstPct,
         sgstAmt,
+        entryDate,
+        expiryDate,
         description: String(body.description || '').trim(),
         name: particulars,
         sku: existingProduct?.sku || body.sku || buildLegacySku(particulars),

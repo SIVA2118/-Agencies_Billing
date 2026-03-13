@@ -50,6 +50,8 @@ const InvoiceSchema = new mongoose.Schema(
         // ── Invoice meta ────────────────────────────────────────────────────────
         invoiceNo: { type: String, required: true, unique: true },
         invoiceDate: { type: Date, required: true },
+        entryDate: { type: Date },
+        expiryDate: { type: Date },
         Adminid: { type: String },
         employeeId: { type: String },
         employeeName: { type: String },
@@ -74,5 +76,11 @@ const InvoiceSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+InvoiceSchema.index({ createdAt: -1 });
+InvoiceSchema.index({ invoiceDate: -1 });
+InvoiceSchema.index({ 'buyer.name': 1 });
+InvoiceSchema.index({ employeeId: 1 });
+InvoiceSchema.index({ Adminid: 1 });
 
 module.exports = mongoose.model('Invoice', InvoiceSchema);

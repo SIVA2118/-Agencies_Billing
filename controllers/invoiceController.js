@@ -77,6 +77,10 @@ function normalizeItems(items) {
     }));
 }
 
+function escapeRegex(value = '') {
+    return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // ── Helper: auto-calculate totals from items ─────────────────────────────────
 function calculateTotals(items) {
     const totalUnits = items.reduce((s, i) => s + i.grossAmt, 0);
@@ -126,7 +130,87 @@ function calculateTotals(items) {
 // ── GET all invoices ─────────────────────────────────────────────────────────
 exports.getAllInvoices = async (req, res) => {
     try {
-        const invoices = await Invoice.find().sort({ createdAt: -1 });
+        const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 25, 1), 200);
+        const shouldPaginate = req.query.paginate === '1' || 'page' in req.query || 'limit' in req.query;
+        const buyer = String(req.query.buyer || '').trim();
+        const employee = String(req.query.employee || '').trim();
+        const search = String(req.query.search || '').trim();
+
+        const filter = {};
+
+        if (req.user?.role === 'employee' && req.user?.employeeId) {
+            filter.$or = [
+                { employeeId: req.user.employeeId },
+                { Adminid: req.user.employeeId },
+            ];
+        }
+
+        if (buyer) {
+            filter['buyer.name'] = { $regex: `^${escapeRegex(buyer)}$`, $options: 'i' };
+        }
+
+        if (employee) {
+            const employeeFilter = [
+                { employeeId: { $regex: `^${escapeRegex(employee)}$`, $options: 'i' } },
+                { Adminid: { $regex: `^${escapeRegex(employee)}$`, $options: 'i' } },
+            ];
+
+            if (filter.$or) {
+                filter.$and = [{ $or: filter.$or }, { $or: employeeFilter }];
+                delete filter.$or;
+            } else {
+                filter.$or = employeeFilter;
+            }
+        }
+
+        if (search) {
+            const searchRegex = { $regex: escapeRegex(search), $options: 'i' };
+            const searchFilter = {
+                $or: [
+                    { invoiceNo: searchRegex },
+                    { 'buyer.name': searchRegex },
+                    { employeeId: searchRegex },
+                    { Adminid: searchRegex },
+                ],
+            };
+
+            if (filter.$and) {
+                filter.$and.push(searchFilter);
+            } else if (filter.$or) {
+                filter.$and = [{ $or: filter.$or }, searchFilter];
+                delete filter.$or;
+            } else {
+                Object.assign(filter, searchFilter);
+            }
+        }
+
+        const sort = { createdAt: -1 };
+
+        if (shouldPaginate) {
+            const skip = (page - 1) * limit;
+            const [invoices, total] = await Promise.all([
+                Invoice.find(filter).sort(sort).skip(skip).limit(limit),
+                Invoice.countDocuments(filter),
+            ]);
+
+            const totalPages = Math.max(Math.ceil(total / limit), 1);
+            return res.json({
+                success: true,
+                count: invoices.length,
+                data: invoices,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages,
+                    hasNext: page < totalPages,
+                    hasPrev: page > 1,
+                },
+            });
+        }
+
+        const invoices = await Invoice.find(filter).sort(sort);
         res.json({ success: true, count: invoices.length, data: invoices });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

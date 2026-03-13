@@ -62,6 +62,12 @@ const ProductSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
+    entryDate: {
+        type: Date,
+    },
+    expiryDate: {
+        type: Date,
+    },
     unitPrice: {
         type: Number,
         default: 0,
