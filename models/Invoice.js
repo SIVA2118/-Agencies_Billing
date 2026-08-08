@@ -4,7 +4,9 @@ const mongoose = require('mongoose');
 const ItemSchema = new mongoose.Schema({
     slNo: { type: Number, required: true },
     particulars: { type: String, required: true },
-    qty: { type: String, required: true },   // e.g. "2 CS30" or "12 Pcs"
+    qty: { type: String, required: true },   // available stock label, may include unit suffix
+    qty2: { type: String, required: true },  // actual billed quantity
+    freeQty: { type: Number, default: 0 },
     rate: { type: Number, required: true },
     grossAmt: { type: Number, required: true },
     cgstPct: { type: Number, required: true },

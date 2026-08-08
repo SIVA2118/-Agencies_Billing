@@ -20,7 +20,9 @@ function aggregateItemQty(items) {
         }
 
         const current = qtyByParticulars.get(key) || 0;
-        qtyByParticulars.set(key, current + parseQty(item.qty));
+        const billedQty = parseQty(item.qty2 ?? item.qty);
+        const freeQty = parseQty(item.freeQty || 0);
+        qtyByParticulars.set(key, current + billedQty + freeQty);
     });
 
     return qtyByParticulars;
@@ -67,6 +69,8 @@ function normalizeItems(items) {
         slNo: item.slNo ?? index + 1,
         particulars: item.particulars,
         qty: item.qty,
+        qty2: item.qty2 ?? item.qty,
+        freeQty: Number(item.freeQty || 0),
         rate: Number(item.rate || 0),
         grossAmt: Number(item.grossAmt || 0),
         cgstPct: Number(item.cgstPct || 0),

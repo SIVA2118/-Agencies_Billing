@@ -2,7 +2,7 @@ const Buyer = require('../models/Buyer');
 
 exports.getBuyers = async (req, res) => {
     try {
-        const buyers = await Buyer.find().sort({ name: 1 });
+        const buyers = await Buyer.find().sort({ createdAt: -1 });
         res.status(200).json({ success: true, count: buyers.length, data: buyers });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
