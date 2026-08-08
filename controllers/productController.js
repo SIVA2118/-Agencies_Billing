@@ -52,7 +52,12 @@ const buildProductPayload = (body, existingProduct) => {
 // Get all products
 exports.getProducts = async (req, res) => {
     try {
-        const products = await Product.find().sort({ createdAt: -1 });
+        const filter = {};
+        if (req.query.category) {
+            filter.category = String(req.query.category).trim();
+        }
+
+        const products = await Product.find(filter).sort({ createdAt: -1 });
         res.status(200).json({ success: true, count: products.length, data: products });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
