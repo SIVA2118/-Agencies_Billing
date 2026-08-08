@@ -285,7 +285,23 @@ exports.updateInvoice = async (req, res) => {
     }
 };
 
-// ── DELETE invoice ───────────────────────────────────────────────────────────
+// ── GET invoices by date ───────────────────────────────────────────────────────
+exports.getInvoicesByDate = async (req, res) => {
+    try {
+        const { date } = req.params; // expect YYYY-MM-DD
+        const start = new Date(date);
+        start.setUTCHours(0,0,0,0);
+        const end = new Date(date);
+        end.setUTCHours(23,59,59,999);
+        const invoices = await Invoice.find({ invoiceDate: { $gte: start, $lte: end } }).sort({ createdAt: -1 });
+        res.json({ success: true, count: invoices.length, data: invoices });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+
+
 exports.deleteInvoice = async (req, res) => {
     try {
         const invoice = await Invoice.findById(req.params.id);

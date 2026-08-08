@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const buyerRoutes = require('./routes/buyerRoutes');
+const routeRoutes = require('./routes/routeRoutes');
 const { protect } = require('./middleware/authMiddleware');
 
 const app = express();
@@ -21,6 +22,7 @@ app.use('/api/invoices', protect, invoiceRoutes);
 app.use('/api/products', protect, productRoutes);
 app.use('/api/categories', protect, categoryRoutes);
 app.use('/api/buyers', protect, buyerRoutes);
+app.use('/api/routes', protect, routeRoutes);
 
 // Health check
 app.get('/', (req, res) => res.json({ message: 'Invoice API Running' }));

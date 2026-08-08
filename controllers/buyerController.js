@@ -9,6 +9,16 @@ exports.getBuyers = async (req, res) => {
     }
 };
 
+exports.getBuyerById = async (req, res) => {
+    try {
+        const buyer = await Buyer.findById(req.params.id);
+        if (!buyer) return res.status(404).json({ success: false, message: 'Buyer not found' });
+        res.status(200).json({ success: true, data: buyer });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+};
+
 exports.createBuyer = async (req, res) => {
     try {
         const payload = {
@@ -24,6 +34,27 @@ exports.createBuyer = async (req, res) => {
 
         const buyer = await Buyer.create(payload);
         res.status(201).json({ success: true, data: buyer });
+    } catch (err) {
+        res.status(400).json({ success: false, message: err.message });
+    }
+};
+
+exports.updateBuyer = async (req, res) => {
+    try {
+        const payload = {
+            name: String(req.body.name || '').trim(),
+            address: String(req.body.address || '').trim(),
+            route: String(req.body.route || '').trim(),
+            phone: String(req.body.phone || '').trim(),
+        };
+
+        if (!payload.name) {
+            return res.status(400).json({ success: false, message: 'Buyer name is required' });
+        }
+
+        const buyer = await Buyer.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
+        if (!buyer) return res.status(404).json({ success: false, message: 'Buyer not found' });
+        res.status(200).json({ success: true, data: buyer });
     } catch (err) {
         res.status(400).json({ success: false, message: err.message });
     }

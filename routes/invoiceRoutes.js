@@ -6,7 +6,10 @@ const {
     createInvoice,
     updateInvoice,
     deleteInvoice,
+    getInvoicesByDate,
 } = require('../controllers/invoiceController');
+
+router.get('/date/:date', getInvoicesByDate);
 
 router.route('/')
     .get(getAllInvoices)
